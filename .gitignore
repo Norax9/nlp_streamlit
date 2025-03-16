@@ -1,0 +1,18 @@
+# Ignore Python compiled files
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environments
+venv/
+env/
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+
+# Ignore data files
+*.pkl
+*.h5
+
+# Ignore Streamlit secrets
+.secrets/
