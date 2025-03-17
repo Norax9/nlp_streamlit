@@ -43,8 +43,7 @@ st.write("### Choose an option to predict: Upload a CSV file or enter a news art
 
 # Option to upload dataset or enter text manually
 option = st.radio("Choose input method:", ("Upload CSV", "Enter Text"))
-
- if option == "Upload CSV":
+if option == "Upload CSV":
     uploaded_file = st.file_uploader("Upload validation data (CSV)", type=["csv"])
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file)
@@ -82,5 +81,3 @@ option = st.radio("Choose input method:", ("Upload CSV", "Enter Text"))
 
             # Plot confusion matrix
             plot_confusion_matrix(y_test, y_pred, "Conv1D Model")
-
-     
