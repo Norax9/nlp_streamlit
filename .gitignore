@@ -1,18 +1,15 @@
-# Ignore Python compiled files
+# Ignore Python cache and virtual environment
 __pycache__/
-*.py[cod]
-
-# Ignore virtual environments
 venv/
-env/
+*.pyc
+*.pyo
 
-# Ignore IDE-specific files
-.vscode/
-.idea/
+# Ignore model and tokenizer files
+best_model.h5
+tokenizer.json
 
-# Ignore data files
-*.pkl
-*.h5
+# Ignore dataset files
+*.csv
 
-# Ignore Streamlit secrets
-.secrets/
+# Ignore system files
+.DS_Store
