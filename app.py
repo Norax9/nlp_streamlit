@@ -1,61 +1,61 @@
 import streamlit as st
-import joblib
-import re
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-import nltk
-from tensorflow.keras.models import load_model
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Download NLTK resources (only needed once)
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
+# Load the best model
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model("best_model.h5")
 
-# Load the pre-trained TF-IDF vectorizer and Keras model
-tfidf = joblib.load('tfidf_vectorizer.pkl')
-model = load_model('best_model.h5')
+def preprocess_text(texts, tokenizer, max_len=100):
+    sequences = tokenizer.texts_to_sequences(texts)
+    return pad_sequences(sequences, maxlen=max_len)
 
-# Preprocessing function
-def preprocess_text(text):
-    # Convert to lowercase
-    text = text.lower()
-    # Remove special characters and punctuation
-    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-    # Tokenization
-    tokens = word_tokenize(text)
-    # Remove stopwords and apply lemmatization
-    lemmatizer = WordNetLemmatizer()
-    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stopwords.words('english')]
-    # Join back into a cleaned string
-    return " ".join(tokens)
+def plot_confusion_matrix(y_true, y_pred, model_name):
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title(f'Confusion Matrix - {model_name}')
+    st.pyplot(plt)
 
-# Streamlit app
-def main():
-    st.title("Fake News Detector")
-    st.write("Enter a news headline or article to check if it's real or fake.")
+# Streamlit UI
+st.title("Fake News Detection App - Deep Learning Model")
 
-    # Input text box
-    user_input = st.text_area("Input News Text", "")
-
-    if st.button("Predict"):
-        if user_input:
-            # Preprocess the input text
-            processed_text = preprocess_text(user_input)
-            
-            # Transform the text using the TF-IDF vectorizer
-            text_tfidf = tfidf.transform([processed_text]).toarray()
-            
-            # Make a prediction
-            prediction = model.predict(text_tfidf)
-            
-            # Display the result
-            if prediction[0] > 0.5:  # Assuming binary classification with sigmoid output
-                st.success("This news is **REAL**.")
-            else:
-                st.error("This news is **FAKE**.")
-        else:
-            st.warning("Please enter some text to analyze.")
-
-if __name__ == "__main__":
-    main()
+# Upload dataset
+uploaded_file = st.file_uploader("Upload validation data (CSV)", type=["csv"])
+if uploaded_file is not None:
+    data = pd.read_csv(uploaded_file)
+    st.write("Sample Data:")
+    st.write(data.head())
+    
+    # Load model
+    model = load_model()
+    
+    # Load tokenizer
+    tokenizer = tf.keras.preprocessing.text.tokenizer_from_json(open("tokenizer.json").read())
+    
+    # Preprocess text
+    X_test = preprocess_text(data["text"], tokenizer)
+    y_test = data["label"]
+    
+    # Model Prediction
+    y_pred_probs = model.predict(X_test)
+    y_pred = (y_pred_probs > 0.5).astype(int).flatten()
+    
+    # Evaluate model
+    accuracy = accuracy_score(y_test, y_pred)
+    st.subheader("Model Performance")
+    st.write("Accuracy:", accuracy)
+    st.text("Classification Report:")
+    st.text(classification_report(y_test, y_pred))
+    
+    # Plot confusion matrix
+    plot_confusion_matrix(y_test, y_pred, "Deep Learning Model")
