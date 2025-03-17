@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load the best model
-@st.cache_resource
-def load_model():
-    return tf.keras.models.load_model("best_model.h5")
+# Load the best model without caching
+model = tf.keras.models.load_model("best_model.h5")
+
 
 def preprocess_text(texts, tokenizer, max_len=200):
     sequences = tokenizer.texts_to_sequences(texts)
@@ -30,8 +30,7 @@ def plot_confusion_matrix(y_true, y_pred, model_name):
 # Streamlit UI
 st.title("Fake News Detection App - Conv1D Model")
 
-# Load model
-model = load_model()
+
 
 # Load tokenizer
 with open("tokenizer.pkl", "rb") as f:
