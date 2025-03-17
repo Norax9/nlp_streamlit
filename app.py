@@ -10,14 +10,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load the best model
-# Load the best model without caching
-model = tf.keras.models.load_model("best_model.h5")
+def load_model():
+    return tf.keras.models.load_model("best_model.h5")
 
-
+# Preprocess text
 def preprocess_text(texts, tokenizer, max_len=200):
     sequences = tokenizer.texts_to_sequences(texts)
     return pad_sequences(sequences, maxlen=max_len, padding="post", truncating="post")
 
+# Plot confusion matrix
 def plot_confusion_matrix(y_true, y_pred, model_name):
     cm = confusion_matrix(y_true, y_pred)
     plt.figure(figsize=(6, 4))
@@ -30,14 +31,15 @@ def plot_confusion_matrix(y_true, y_pred, model_name):
 # Streamlit UI
 st.title("Fake News Detection App - Conv1D Model")
 
-
+# Load model
+model = load_model()
 
 # Load tokenizer
 with open("tokenizer.pkl", "rb") as f:
     tokenizer = pickle.load(f)
 
 # Instruction text
-st.write("### Enter a news article, and the model will predict whether it is real or fake.")
+st.write("### Choose an option to predict: Upload a CSV file or enter a news article.")
 
 # Option to upload dataset or enter text manually
 option = st.radio("Choose input method:", ("Upload CSV", "Enter Text"))
@@ -56,7 +58,7 @@ if option == "Upload CSV":
         
         # Model Prediction
         y_pred_probs = model.predict(X_test)
-        y_pred = (y_pred_probs > 0.5).astype(int).flatten()
+        y_pred = (y_pred_probs.squeeze() > 0.5).astype(int)
         
         # Evaluate model
         accuracy = accuracy_score(y_test, y_pred)
