@@ -43,6 +43,7 @@ st.write("### Choose an option to predict: Upload a CSV file or enter a news art
 
 # Option to upload dataset or enter text manually
 option = st.radio("Choose input method:", ("Upload CSV", "Enter Text"))
+
 if option == "Upload CSV":
     uploaded_file = st.file_uploader("Upload validation data (CSV)", type=["csv"])
     if uploaded_file is not None:
@@ -81,3 +82,28 @@ if option == "Upload CSV":
 
             # Plot confusion matrix
             plot_confusion_matrix(y_test, y_pred, "Conv1D Model")
+
+elif option == "Enter Text":
+    st.write("### Enter a news article to predict if it's Fake or Real.")
+    user_input = st.text_area("Paste the news article here:")
+
+    if st.button("Predict"):
+        if user_input.strip() == "":
+            st.error("Please enter some text to predict.")
+        else:
+            # Preprocess the input text
+            X_input = preprocess_text([user_input], tokenizer)
+
+            # Predict
+            y_pred_prob = model.predict(X_input)
+            y_pred = (y_pred_prob.squeeze() > 0.5).astype(int)
+
+            # Display prediction
+            st.subheader("Prediction Result")
+            if y_pred[0] == 0:
+                st.error("Prediction: Fake News")
+            else:
+                st.success("Prediction: Real News")
+
+            # Show prediction probability
+            st.write(f"Prediction Probability: {y_pred_prob.squeeze():.4f}")
