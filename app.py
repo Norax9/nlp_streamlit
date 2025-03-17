@@ -63,8 +63,8 @@ if option == "Upload CSV":
             # Debug: Print unique values in y_test
             st.write("Unique values in y_test before fixing:", np.unique(y_test))
 
-            # Ensure labels are binary (0 or 1)
-            y_test = np.array([0 if y == 2 else y for y in y_test])
+            # Map labels: 2 -> 1 (Real), others -> 0 (Fake)
+            y_test = np.where(y_test == 2, 1, 0)
             st.write("Final unique values in y_test after replacement:", np.unique(y_test))
 
             # Model Prediction
