@@ -2,8 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.models import load_model
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -13,9 +14,9 @@ import seaborn as sns
 def load_model():
     return tf.keras.models.load_model("best_model.h5")
 
-def preprocess_text(texts, tokenizer, max_len=100):
+def preprocess_text(texts, tokenizer, max_len=200):
     sequences = tokenizer.texts_to_sequences(texts)
-    return pad_sequences(sequences, maxlen=max_len)
+    return pad_sequences(sequences, maxlen=max_len, padding="post", truncating="post")
 
 def plot_confusion_matrix(y_true, y_pred, model_name):
     cm = confusion_matrix(y_true, y_pred)
@@ -27,7 +28,7 @@ def plot_confusion_matrix(y_true, y_pred, model_name):
     st.pyplot(plt)
 
 # Streamlit UI
-st.title("Fake News Detection App - Deep Learning Model")
+st.title("Fake News Detection App - Conv1D Model")
 
 # Upload dataset
 uploaded_file = st.file_uploader("Upload validation data (CSV)", type=["csv"])
@@ -40,11 +41,13 @@ if uploaded_file is not None:
     model = load_model()
     
     # Load tokenizer
-    tokenizer = tf.keras.preprocessing.text.tokenizer_from_json(open("tokenizer.json").read())
+    with open("tokenizer.pkl", "rb") as f:
+        tokenizer = pickle.load(f)
     
     # Preprocess text
-    X_test = preprocess_text(data["text"], tokenizer)
-    y_test = data["label"]
+    texts = data["text"].astype(str).tolist()
+    X_test = preprocess_text(texts, tokenizer)
+    y_test = data["label"].values
     
     # Model Prediction
     y_pred_probs = model.predict(X_test)
@@ -58,4 +61,4 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     # Plot confusion matrix
-    plot_confusion_matrix(y_test, y_pred, "Deep Learning Model")
+    plot_confusion_matrix(y_test, y_pred, "Conv1D Model")
