@@ -5,9 +5,7 @@ import tensorflow as tf
 import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import load_model
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn.metrics import accuracy_score, classification_report
 
 # Load the best model
 def load_model():
@@ -17,16 +15,6 @@ def load_model():
 def preprocess_text(texts, tokenizer, max_len=200):
     sequences = tokenizer.texts_to_sequences(texts)
     return pad_sequences(sequences, maxlen=max_len, padding="post", truncating="post")
-
-# Plot confusion matrix
-def plot_confusion_matrix(y_true, y_pred, model_name):
-    cm = confusion_matrix(y_true, y_pred)
-    plt.figure(figsize=(6, 4))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.title(f'Confusion Matrix - {model_name}')
-    st.pyplot(plt)
 
 # Streamlit UI
 st.title("Fake News Detection App - Conv1D Model")
@@ -60,21 +48,28 @@ if option == "Upload CSV":
             X_test = preprocess_text(texts, tokenizer)
             y_test = data["label"].to_numpy()
 
+            # Debug: Print unique values in y_test
+            st.write("Unique values in y_test before fixing:", np.unique(y_test))
+
             # Map labels: 2 -> 1 (Real), others -> 0 (Fake)
             y_test = np.where(y_test == 2, 1, 0)
-            
+            st.write("Final unique values in y_test after replacement:", np.unique(y_test))
 
             # Model Prediction
             y_pred_probs = model.predict(X_test)
-            
-
             y_pred = (y_pred_probs.squeeze() > 0.5).astype(int)
+
+            # Add predictions to the dataframe
+            data["Prediction"] = ["Real" if pred == 1 else "Fake" for pred in y_pred]
+            st.write("Predictions:")
+            st.write(data[["text", "Prediction"]])
 
             # Evaluate model
             accuracy = accuracy_score(y_test, y_pred)
             st.subheader("Model Performance")
             st.write("Accuracy:", accuracy)
-           
+            st.text("Classification Report:")
+            st.text(classification_report(y_test, y_pred))
 
 elif option == "Enter Text":
     st.write("### Enter a news article to predict if it's Fake or Real.")
