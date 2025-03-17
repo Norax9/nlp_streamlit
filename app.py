@@ -56,6 +56,13 @@ if option == "Upload CSV":
         X_test = preprocess_text(texts, tokenizer)
         y_test = data["label"].values
         
+        # Debug: Print unique values in y_test
+        st.write("Unique values in y_test:", np.unique(y_test))
+        
+        # Ensure labels are binary (0 or 1)
+        y_test = np.where(y_test == 2, 0, y_test)
+        y_test = y_test.astype(int)
+        
         # Model Prediction
         y_pred_probs = model.predict(X_test)
         y_pred = (y_pred_probs.squeeze() > 0.5).astype(int)
@@ -81,4 +88,3 @@ elif option == "Enter Text":
             st.write(f"Prediction: {y_pred_label} (Confidence: {y_pred_prob:.4f})")
         else:
             st.warning("Please enter some text to predict.")
-
