@@ -60,7 +60,7 @@ if option == "Upload CSV":
         st.write("Unique values in y_test:", np.unique(y_test))
         
         # Ensure labels are binary (0 or 1)
-        y_test = np.where(y_test == 2, 0, y_test)
+        y_test = np.array([0 if y == 2 else y for y in y_test])
         y_test = y_test.astype(int)
         
         # Model Prediction
