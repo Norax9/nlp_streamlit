@@ -60,16 +60,13 @@ if option == "Upload CSV":
             X_test = preprocess_text(texts, tokenizer)
             y_test = data["label"].to_numpy()
 
-            # Debug: Print unique values in y_test
-            st.write("Unique values in y_test before fixing:", np.unique(y_test))
-
             # Map labels: 2 -> 1 (Real), others -> 0 (Fake)
             y_test = np.where(y_test == 2, 1, 0)
-            st.write("Final unique values in y_test after replacement:", np.unique(y_test))
+            
 
             # Model Prediction
             y_pred_probs = model.predict(X_test)
-            st.write("Sample y_pred_probs:", y_pred_probs[:10])  # Debugging output
+            
 
             y_pred = (y_pred_probs.squeeze() > 0.5).astype(int)
 
@@ -77,11 +74,7 @@ if option == "Upload CSV":
             accuracy = accuracy_score(y_test, y_pred)
             st.subheader("Model Performance")
             st.write("Accuracy:", accuracy)
-            st.text("Classification Report:")
-            st.text(classification_report(y_test, y_pred))
-
-            # Plot confusion matrix
-            plot_confusion_matrix(y_test, y_pred, "Conv1D Model")
+           
 
 elif option == "Enter Text":
     st.write("### Enter a news article to predict if it's Fake or Real.")
